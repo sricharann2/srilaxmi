@@ -1,14 +1,18 @@
-let riceMillData = JSON.parse(localStorage.getItem('riceMillData')) || []; // Load saved data or initialize empty array
+// Load data from local storage or initialize an empty array
+let riceMillData = JSON.parse(localStorage.getItem('riceMillData')) || [];
 
+// Save data to local storage
 function saveDataToLocalStorage() {
     localStorage.setItem('riceMillData', JSON.stringify(riceMillData));
 }
 
+// Add a new data entry
 function addData(entry) {
     riceMillData.push(entry);
     saveDataToLocalStorage(); // Save data every time a new entry is added
 }
 
+// Display data in the table
 function viewData() {
     const dataViewerBody = document.getElementById('dataViewerBody');
     dataViewerBody.innerHTML = '';
@@ -38,20 +42,23 @@ function viewData() {
     });
 }
 
+// Verify an entry
 function verifyEntry(index) {
     riceMillData[index].isVerified = true;
     saveDataToLocalStorage(); // Save changes after verification
     viewData(); // Refresh the data view
 }
 
+// Confirm and delete an entry
 function confirmDelete(index) {
     if (confirm('Are you sure you want to delete this entry?')) {
         riceMillData.splice(index, 1);
-        saveDataToLocalStorage(); // Save changes after deletion
+        saveDataToLocalStorage(); // Update local storage after deletion
         viewData(); // Refresh the data view
     }
 }
 
+// Edit an entry
 function editEntry(index) {
     const entry = riceMillData[index];
     document.getElementById('village').value = entry.village;
@@ -64,6 +71,7 @@ function editEntry(index) {
     openTab('dataEntry');
 }
 
+// Handle form submission for new or edited entries
 document.getElementById('dataEntryForm').addEventListener('submit', function (event) {
     event.preventDefault();
 
