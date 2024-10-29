@@ -174,7 +174,7 @@
                 </select>
                 <div id="newVillageContainer" style="display:none;">
                     <label for="newVillage">New Village Name</label>
-                    <input type="text" id="newVillage" placeholder="Enter new village name">
+                    <input type="text" id="newVillage">
                 </div>
 
                 <label for="vehicleNumber">Vehicle Number</label>
@@ -210,150 +210,10 @@
         </div>
     </div>
 
-    <script src="datastore.js"></script>
+    <script type="module" src="datastore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script>
-        const data = [];
-
-        let deleteIndex = -1;
-
-        // Tab Switching
-        document.getElementById('dataEntryTab').onclick = function() {
-            document.getElementById('dataEntry').classList.add('active');
-            document.getElementById('dataViewer').classList.remove('active');
-        };
-        document.getElementById('dataViewerTab').onclick = function() {
-            document.getElementById('dataViewer').classList.add('active');
-            document.getElementById('dataEntry').classList.remove('active');
-            loadData();
-        };
-
-        // New Village Input Visibility
-        document.getElementById('village').addEventListener('change', function() {
-            document.getElementById('newVillageContainer').style.display = this.value === 'other' ? 'block' : 'none';
-        });
-
-        function loadData() {
-            const tableContainer = document.getElementById('tableContainer');
-            tableContainer.innerHTML = '';
-
-            if (data.length === 0) {
-                tableContainer.innerHTML = '<p>No data available.</p>';
-                return;
-            }
-
-            // Group data by village and calculate total bags per village
-            const villageData = {};
-            data.forEach((entry) => {
-                if (!villageData[entry.village]) {
-                    villageData[entry.village] = { totalBags: 0, entries: [] };
-                }
-                villageData[entry.village].totalBags += entry.numOfBags;
-                villageData[entry.village].entries.push(entry);
-            });
-
-            // Generate table HTML with village grouping
-            let tableHTML = '';
-            for (const village in villageData) {
-                tableHTML += `<h3>Village: ${village} (Total Bags: ${villageData[village].totalBags})</h3>`;
-                tableHTML += '<table><thead><tr><th>Vehicle Number</th><th>Loaded Weight (kg)</th><th>Empty Weight (kg)</th><th>Bag Weight (kg)</th><th>Number of Bags</th><th>Verified</th><th>Actions</th></tr></thead><tbody>';
-
-                villageData[village].entries.forEach((entry, index) => {
-                    tableHTML += `<tr>
-                        <td>${entry.vehicleNumber}</td>
-                        <td>${entry.loadedWeight}</td>
-                        <td>${entry.emptyWeight}</td>
-                        <td>${entry.bagWeight}</td>
-                        <td>${entry.numOfBags}</td>
-                        <td>${entry.verified ? 'Yes' : 'No'}</td>
-                        <td>
-                            <button class="action-button verify-button" onclick="toggleVerification(${index})">Verify</button>
-                            <button class="action-button delete-button" onclick="confirmDelete(${index})">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-
-                tableHTML += '</tbody></table>';
-            }
-
-            tableContainer.innerHTML = tableHTML;
-        }
-
-        // Form Submission
-        document.getElementById('dataForm').onsubmit = function(e) {
-            e.preventDefault();
-            const village = document.getElementById('village').value === 'other' ? document.getElementById('newVillage').value : document.getElementById('village').value;
-            const vehicleNumber = document.getElementById('vehicleNumber').value;
-            const loadedWeight = parseFloat(document.getElementById('loadedWeight').value);
-            const emptyWeight = parseFloat(document.getElementById('emptyWeight').value);
-            const bagWeight = parseFloat(document.getElementById('bagWeight').value);
-
-            if (loadedWeight <= emptyWeight) {
-                document.getElementById('feedbackMessage').textContent = 'Loaded weight must be greater than empty weight.';
-                return;
-            }
-
-            const totalWeight = loadedWeight - emptyWeight;
-            const numOfBags = Math.floor(totalWeight / bagWeight);
-
-            const entry = {
-                village,
-                vehicleNumber,
-                loadedWeight,
-                emptyWeight,
-                bagWeight,
-                numOfBags,
-                verified: false
-            };
-
-            data.push(entry);
-            document.getElementById('dataForm').reset();
-            document.getElementById('feedbackMessage').textContent = 'Data submitted successfully.';
-            loadData();
-        };
-
-        // Toggle Verification
-        function toggleVerification(index) {
-            data[index].verified = !data[index].verified;
-            loadData();
-        }
-
-        // Confirm Delete Entry
-        function confirmDelete(index) {
-            deleteIndex = index;
-            document.getElementById('confirmDeletePopup').style.display = 'flex';
-        }
-
-        // Execute Deletion
-        document.getElementById('confirmDeleteButton').onclick = function() {
-            if (deleteIndex > -1) {
-                data.splice(deleteIndex, 1);
-                deleteIndex = -1;
-                loadData();
-                document.getElementById('confirmDeletePopup').style.display = 'none';
-            }
-        };
-
-        // Cancel Deletion
-        document.getElementById('cancelDeleteButton').onclick = function() {
-            deleteIndex = -1;
-            document.getElementById('confirmDeletePopup').style.display = 'none';
-        };
-
-        // Download PDF Functionality
-        document.getElementById('downloadPdfButton').onclick = function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.text('Rice Mill Data', 10, 10);
-            let y = 20;
-            data.forEach(entry => {
-                doc.text(`Village: ${entry.village}, Vehicle Number: ${entry.vehicleNumber}, Loaded Weight: ${entry.loadedWeight}, Empty Weight: ${entry.emptyWeight}, Bag Weight: ${entry.bagWeight}, Number of Bags: ${entry.numOfBags}, Verified: ${entry.verified}`, 10, y);
-                y += 10;
-            });
-
-            doc.save('rice_mill_data.pdf');
-        };
+        // Main script logic here (if any)
     </script>
 </body>
 </html>
