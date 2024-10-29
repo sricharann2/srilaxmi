@@ -77,22 +77,31 @@ function editEntry(id) {
     // Logic for loading existing data into form for editing
 }
 
-// Handle form submission for new or edited entries
-document.getElementById('dataEntryForm').addEventListener('submit', async function (event) {
-    event.preventDefault();
+// Initialize data view and set up event listeners on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const dataEntryForm = document.getElementById('dataEntryForm');
+    
+    // Check if the form element exists
+    if (dataEntryForm) {
+        dataEntryForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
 
-    const village = document.getElementById('village').value;
-    const vehicleNumber = document.getElementById('vehicleNumber').value;
-    const loadedWeight = parseFloat(document.getElementById('loadedWeight').value);
-    const emptyWeight = parseFloat(document.getElementById('emptyWeight').value);
-    const bagWeight = parseFloat(document.getElementById('bagWeight').value);
-    const numOfBags = Math.floor((loadedWeight - emptyWeight) / bagWeight);
+            const village = document.getElementById('village').value;
+            const vehicleNumber = document.getElementById('vehicleNumber').value;
+            const loadedWeight = parseFloat(document.getElementById('loadedWeight').value);
+            const emptyWeight = parseFloat(document.getElementById('emptyWeight').value);
+            const bagWeight = parseFloat(document.getElementById('bagWeight').value);
+            const numOfBags = Math.floor((loadedWeight - emptyWeight) / bagWeight);
 
-    const newEntry = { village, vehicleNumber, loadedWeight, emptyWeight, bagWeight, numOfBags, isVerified: false };
+            const newEntry = { village, vehicleNumber, loadedWeight, emptyWeight, bagWeight, numOfBags, isVerified: false };
 
-    await addData(newEntry); // Add new data to Firestore
-    this.reset(); // Reset the form fields
+            await addData(newEntry); // Add new data to Firestore
+            this.reset(); // Reset the form fields
+        });
+    } else {
+        console.error("Form element with ID 'dataEntryForm' not found.");
+    }
+
+    // Initialize data view on page load
+    viewData();
 });
-
-// Initialize data view on page load
-document.addEventListener('DOMContentLoaded', viewData);
