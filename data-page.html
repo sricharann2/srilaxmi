@@ -164,7 +164,7 @@
 
         <!-- Data Entry Section -->
         <div id="dataEntry" class="section active">
-            <form id="dataEntryForm"> <!-- Updated ID to match JavaScript -->
+            <form id="dataForm">
                 <label for="village">Village</label>
                 <select id="village" required>
                     <option value="buggaram">Buggaram</option>
@@ -210,10 +210,146 @@
         </div>
     </div>
 
-    <script type="module" src="datastore.js"></script>
+    <script src="datastore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script>
-        // Main script logic here (if any)
+        const data = [
+            { village: 'Buggaram', vehicleNumber: 'ts', loadedWeight: 1000, emptyWeight: 500, bagWeight: 40, numOfBags: 25, isVerified: false },
+            { village: 'Sirikonda', vehicleNumber: 'ts', loadedWeight: 1200, emptyWeight: 600, bagWeight: 50, numOfBags: 30, isVerified: false }
+        ];
+
+        let deleteIndex = -1;
+
+        // Tab Switching
+        document.getElementById('dataEntryTab').onclick = function() {
+            document.getElementById('dataEntry').classList.add('active');
+            document.getElementById('dataViewer').classList.remove('active');
+        };
+        document.getElementById('dataViewerTab').onclick = function() {
+            document.getElementById('dataViewer').classList.add('active');
+            document.getElementById('dataEntry').classList.remove('active');
+            loadData();
+        };
+
+        // New Village Input Visibility
+        document.getElementById('village').addEventListener('change', function() {
+            document.getElementById('newVillageContainer').style.display = this.value === 'other' ? 'block' : 'none';
+        });
+
+        function loadData() {
+            const tableContainer = document.getElementById('tableContainer');
+            tableContainer.innerHTML = ''; 
+
+            if (data.length === 0) {
+                tableContainer.innerHTML = '<p>No data available.</p>';
+                return;
+            }
+
+            // Group data by village and calculate total bags per village
+            const villageData = {};
+            data.forEach((entry) => {
+                if (!villageData[entry.village]) {
+                    villageData[entry.village] = { totalBags: 0, entries: [] };
+                }
+                villageData[entry.village].totalBags += entry.numOfBags;
+                villageData[entry.village].entries.push(entry);
+            });
+
+            // Generate table HTML with village grouping
+            let tableHTML = '';
+            for (const village in villageData) {
+                tableHTML += `<h3>Village: ${village} (Total Bags: ${villageData[village].totalBags})</h3>`;
+                tableHTML += '<table><thead><tr><th>Vehicle Number</th><th>Loaded Weight (kg)</th><th>Empty Weight (kg)</th><th>Bag Weight (kg)</th><th>Number of Bags</th><th>Verified</th><th>Actions</th></tr></thead><tbody>';
+
+                villageData[village].entries.forEach((entry, index) => {
+                    tableHTML += `<tr>
+                        <td>${entry.vehicleNumber}</td>
+                        <td>${entry.loadedWeight}</td>
+                        <td>${entry.emptyWeight}</td>
+                        <td>${entry.bagWeight}</td>
+                        <td>${entry.numOfBags}</td>
+                        <td>${entry.isVerified ? 'Yes' : 'No'}</td>
+                        <td>
+                            <button class="action-button verify-button" onclick="verifyEntry(${index})">Verify</button>
+                            <button class="action-button delete-button" onclick="openDeletePopup(${index})">Delete</button>
+                        </td>
+                    </tr>`;
+                });
+                tableHTML += '</tbody></table><br>';
+            }
+
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        // Form Submission
+        document.getElementById('dataForm').onsubmit = function(e) {
+            e.preventDefault();
+            const village = document.getElementById('village').value;
+            const newVillage = document.getElementById('newVillage').value;
+            const vehicleNumber = document.getElementById('vehicleNumber').value;
+            const loadedWeight = parseFloat(document.getElementById('loadedWeight').value);
+            const emptyWeight = parseFloat(document.getElementById('emptyWeight').value);
+            const bagWeight = parseFloat(document.getElementById('bagWeight').value);
+
+            const numOfBags = Math.floor((loadedWeight - emptyWeight) / bagWeight);
+
+            data.push({
+                village: village === 'other' ? newVillage : village,
+                vehicleNumber,
+                loadedWeight,
+                emptyWeight,
+                bagWeight,
+                numOfBags,
+                isVerified: false
+            });
+
+            document.getElementById('feedbackMessage').innerText = 'Data submitted successfully!';
+            this.reset();
+            loadData();
+        };
+
+        // Verify Entry
+        function verifyEntry(index) {
+            data[index].isVerified = true;
+            loadData();
+        }
+
+        // Open Delete Confirmation Popup
+        function openDeletePopup(index) {
+            deleteIndex = index;
+            document.getElementById('confirmDeletePopup').style.display = 'flex';
+        }
+
+        // Confirm Delete
+        document.getElementById('confirmDeleteButton').onclick = function() {
+            if (deleteIndex > -1) {
+                data.splice(deleteIndex, 1);
+                deleteIndex = -1;
+                loadData();
+                document.getElementById('confirmDeletePopup').style.display = 'none';
+            }
+        };
+
+        // Cancel Delete
+        document.getElementById('cancelDeleteButton').onclick = function() {
+            deleteIndex = -1;
+            document.getElementById('confirmDeletePopup').style.display = 'none';
+        };
+
+        // Download as PDF
+        document.getElementById('downloadPdfButton').onclick = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text('Rice Mill Data', 20, 20);
+            let y = 30;
+
+            data.forEach(entry => {
+                doc.text(`Village: ${entry.village}, Vehicle Number: ${entry.vehicleNumber}, Loaded Weight: ${entry.loadedWeight} kg, Empty Weight: ${entry.emptyWeight} kg, Bag Weight: ${entry.bagWeight} kg, Number of Bags: ${entry.numOfBags}, Verified: ${entry.isVerified ? 'Yes' : 'No'}`, 20, y);
+                y += 10;
+            });
+
+            doc.save('rice_mill_data.pdf');
+        };
     </script>
 </body>
 </html>
